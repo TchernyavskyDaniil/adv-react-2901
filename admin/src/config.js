@@ -1,7 +1,7 @@
 import firebase from 'firebase/app'
 import 'firebase/auth'
 
-export const appName = 'adv-react-29-01'
+export const appName = 'react-course-project-39370'
 
 const config = {
   apiKey: 'AIzaSyD3RIBQ59em4ZGOdRLQpS1velxhcgImTeI',
