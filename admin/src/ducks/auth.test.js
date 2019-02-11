@@ -1,4 +1,4 @@
-import { select, put, call } from 'redux-saga/effects'
+import { put, call, take } from 'redux-saga/effects'
 import api from '../services/api'
 import {
   signUpSaga,
@@ -6,16 +6,21 @@ import {
   SIGN_UP_SUCCESS,
   signIn,
   signInSaga,
-  SIGN_IN_SUCCESS
+  SIGN_IN_SUCCESS,
+  SIGN_IN_ERROR,
+  SIGN_IN_LIMIT_PERMISSIONS,
+  SIGN_IN_REQUEST
 } from './auth'
+
+const user = {
+  email: 'roman@test.com',
+  password: 'qwertyQWERTY'
+}
+
+const { email, password } = user
 
 describe('Auth Duck', () => {
   it('should Sign Up', () => {
-    const user = {
-      email: 'roman@test.com',
-      password: 'qwertyQWERTY'
-    }
-    const { email, password } = user
     const action = signUp(email, password)
     const signUpSagaTest = signUpSaga(action)
 
@@ -34,15 +39,11 @@ describe('Auth Duck', () => {
   })
 
   it('should Sign In', () => {
-    const user = {
-      email: 'roman@test.com',
-      password: 'qwertyQWERTY'
-    }
-    const { email, password } = user
-    const action = signIn(email, password)
-    const signInSagaTest = signInSaga(action)
+    const signInSagaTest = signInSaga()
 
-    expect(signInSagaTest.next().value).toEqual(
+    expect(signInSagaTest.next().value).toEqual(take(SIGN_IN_REQUEST))
+
+    expect(signInSagaTest.next({ payload: user }).value).toEqual(
       call(api.signIn, email, password)
     )
 
@@ -52,7 +53,32 @@ describe('Auth Duck', () => {
         payload: { user }
       })
     )
+  })
 
-    expect(signInSagaTest.next().done).toEqual(true)
+  it('should error Sign In', () => {
+    const action = signIn(email, password)
+    const error = new Error('You can not sign in, try later')
+    const signInSagaTest = signInSaga(action)
+
+    for (let i = 0; i <= 3; i++) {
+      expect(signInSagaTest.next().value).toEqual(take(SIGN_IN_REQUEST))
+
+      expect(signInSagaTest.next({ payload: user }).value).toEqual(
+        call(api.signIn, email, password)
+      )
+
+      expect(signInSagaTest.throw(error).value).toEqual(
+        put({
+          type: SIGN_IN_ERROR,
+          error
+        })
+      )
+    }
+
+    expect(signInSagaTest.next().value).toEqual(
+      put({
+        type: SIGN_IN_LIMIT_PERMISSIONS
+      })
+    )
   })
 })
