@@ -6,7 +6,7 @@ import { generateId } from './utils'
 describe('People', () => {
   it('should add a person', () => {
     const person = {
-      email: 'aasdf@asd.com',
+      email: 'roman@test.com',
       firstName: 'Roman',
       lastName: 'Yakobchuk'
     }
